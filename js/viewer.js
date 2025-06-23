@@ -2,9 +2,7 @@
 
 /**
  * A robust, state-machine-based CSV parser.
- * Handles quoted fields, escaped quotes, and newlines within fields.
- * @param {string} text - The raw CSV text.
- * @returns {{header: string[], data: string[][]}}
+ * (This function is unchanged)
  */
 function parseCSV(text) {
     console.log('[CSV QuickView Viewer] Starting robust parse...');
@@ -52,9 +50,10 @@ function parseCSV(text) {
     return { header: nonEmptyRows[0], data: nonEmptyRows.slice(1) };
 }
 
+
 /**
  * Renders the parsed CSV data into a virtualized table.
- * @param {{header: string[], data: string[][]}} csv - Parsed CSV object.
+ * (This function is unchanged)
  */
 function renderVirtualizedTable({ header, data }) {
     console.log(`[CSV QuickView Viewer] Rendering virtualized table for ${data.length} rows.`);
@@ -86,7 +85,6 @@ function renderVirtualizedTable({ header, data }) {
     const sampleRow = document.createElement('tr');
     header.forEach(() => {
         const sampleCell = document.createElement('td');
-        // Match our new CSS padding for accurate height calculation
         sampleCell.style.padding = '0.75em 1em'; 
         sampleCell.innerHTML = 'Sample';
         sampleRow.appendChild(sampleCell);
@@ -112,11 +110,9 @@ function renderVirtualizedTable({ header, data }) {
 
     function render() {
         const scrollY = window.scrollY;
-        // Optimization: only render if scroll position has changed
         if (Math.abs(scrollY - lastRenderedScrollY) < 1) return;
         lastRenderedScrollY = scrollY;
         
-        // Define buffer for smoother scrolling
         const buffer = 5;
         const startIndex = Math.max(0, Math.floor(scrollY / rowHeight) - buffer);
         const endIndex = Math.min(data.length, startIndex + visibleRowCount + (buffer * 2));
@@ -138,15 +134,17 @@ function renderVirtualizedTable({ header, data }) {
     window.addEventListener('scroll', render, { passive: true });
     window.addEventListener('resize', () => {
         visibleRowCount = Math.ceil(window.innerHeight / rowHeight);
-        lastRenderedScrollY = -1; // Force a re-render
+        lastRenderedScrollY = -1;
         render();
     }, { passive: true });
     
-    render(); // Initial render
+    render();
 }
+
 
 /**
  * Main execution logic for the viewer page.
+ * (This function is UPDATED)
  */
 async function initializeViewer() {
     const params = new URLSearchParams(window.location.search);
@@ -158,7 +156,7 @@ async function initializeViewer() {
     }
 
     const filename = decodeURIComponent(fileUrl.split('/').pop());
-    document.title = filename; // Set the tab title
+    document.title = filename;
 
     try {
         console.log(`[CSV QuickView Viewer] Fetching file content from: ${fileUrl}`);
@@ -168,9 +166,33 @@ async function initializeViewer() {
         }
         const csvText = await response.text();
         console.log(`[CSV QuickView Viewer] Successfully fetched ${csvText.length} characters.`);
+
+        // --- NEW: Handle truly empty file ---
+        if (!csvText || csvText.trim() === '') {
+            console.warn('[CSV QuickView Viewer] File is empty.');
+            document.body.innerHTML = `<div class="notification is-warning m-5">
+                <h1 class="title is-4">CSV File is Empty</h1>
+                <p>The file '${filename}' contains no content.</p>
+            </div>`;
+            return;
+        }
         
         const { header, data } = parseCSV(csvText);
-        if (header.length === 0) throw new Error("File is empty or could not be parsed.");
+
+        // --- NEW: Handle header-only file ---
+        if (header.length > 0 && data.length === 0) {
+            console.warn('[CSV QuickView Viewer] File contains only a header.');
+            document.body.innerHTML = `<div class="notification is-info m-5">
+                <h1 class="title is-4">CSV Contains Only a Header</h1>
+                <p>The file '${filename}' has column headers but no data rows to display.</p>
+            </div>`;
+            return;
+        }
+
+        // --- MODIFIED: Handle unparsable file ---
+        if (header.length === 0) {
+            throw new Error("Could not parse the file content as a valid CSV.");
+        }
 
         renderVirtualizedTable({ header, data });
 
