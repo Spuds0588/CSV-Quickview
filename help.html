@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV QuickView Setup</title>
+    <link rel="stylesheet" href="css/bulma.min.css">
+    <style>
+        body {
+            width: 500px;
+            padding: 1rem;
+        }
+        .container {
+            padding: 1rem;
+        }
+        code {
+            background-color: #f1f1f1;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+        }
+        .box {
+            margin-top: 1.5rem;
+        }
+        .button {
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Welcome to CSV QuickView!</h1>
+        <p class="subtitle">Just one more step to enable lightning-fast CSV viewing.</p>
+        
+        <div class="notification is-warning">
+            <strong>Action Required: Grant File Access</strong>
+        </div>
+
+        <p>For your security, Chrome requires you to manually grant extensions permission to access local files.</p>
+        
+        <div class="box">
+            <p><strong>To complete setup:</strong></p>
+            <ol>
+                <li>Click the button below to open the Extensions page.</li>
+                <li>Find <strong>CSV QuickView</strong> in the list.</li>
+                <li>Turn on the toggle switch for <strong>"Allow access to file URLs"</strong>.</li>
+            </ol>
+            <button id="go-to-extensions" class="button is-primary is-fullwidth">Take Me to Settings</button>
+        </div>
+
+        <p>After enabling this setting, you can simply double-click any <code>.csv</code> file on your computer to open it instantly in Chrome.</p>
+        <hr>
+        <p class="is-size-7">This extension will <strong>only</strong> use this permission to read and display <code>.csv</code> files you open in the browser.</p>
+    </div>
+
+    <script src="js/help.js"></script>
+</body>
+</html>

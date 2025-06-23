@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "CSV QuickView",
+  "version": "1.2.1",
+  "description": "Automatically renders local CSV files as a fast, readable table directly in your browser.",
+  "permissions": [
+    "tabs",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "file://*/*"
+  ],
+  "background": {
+    "service_worker": "js/background.js"
+  },
+  "action": {
+    "default_title": "CSV QuickView Help",
+    "default_popup": "help.html"
+  }
+}
