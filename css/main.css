@@ -1,0 +1,54 @@
+/* css/main.css */
+
+/* --- Layout and Scroll --- */
+body {
+    margin: 0;
+}
+
+#csv-render-container {
+    overflow-x: auto;
+    width: 100vw;
+    position: relative;
+}
+
+/* --- Table Styles --- */
+thead th {
+    position: sticky;
+    top: 0;
+    /* REMOVED hardcoded background-color. This allows Bulma's theme (light or dark) to apply. */
+    /* A background is still applied by Bulma's own .table th rule. */
+    z-index: 10;
+}
+
+/* Give the cells more breathing room. */
+.table td, .table th {
+    padding: 0.75em 1em;
+    vertical-align: top;
+    white-space: nowrap; /* Prevent cell content from wrapping */
+}
+
+/* --- STICKY FIRST COLUMN LOGIC --- */
+
+/* Make the first header and first cell of each row sticky */
+.table th:first-child,
+.table td:first-child {
+    position: -webkit-sticky; /* For Safari compatibility */
+    position: sticky;
+    left: 0;
+    z-index: 2;
+}
+
+/* The sticky header cell needs to be on top of everything */
+.table thead th:first-child {
+    z-index: 11;
+}
+
+/* 
+  The sticky cells need a background color. By using `inherit`, they will
+  automatically match their parent row's background, which works for light mode,
+  dark mode, striped rows, and hovered rows.
+*/
+.table td:first-child,
+.table.is-hoverable tbody tr:hover td:first-child {
+    background-color: inherit;
+}
