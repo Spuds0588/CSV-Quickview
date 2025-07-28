@@ -1,11 +1,12 @@
 {
   "manifest_version": 3,
   "name": "CSV QuickView",
-  "version": "1.2.1",
+  "version": "1.3.2",
   "description": "Automatically renders local CSV files as a fast, readable table directly in your browser.",
   "permissions": [
     "tabs",
-    "webNavigation"
+    "webNavigation",
+    "scripting"
   ],
   "host_permissions": [
     "file://*/*"
@@ -16,5 +17,10 @@
   "action": {
     "default_title": "CSV QuickView Help",
     "default_popup": "help.html"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   }
 }

@@ -1,19 +1,23 @@
 // js/background.js
 
+console.log('[CSV QuickView] Background script loaded.');
+
 // --- [1] ONBOARDING & HELP ---
 chrome.runtime.onInstalled.addListener(details => {
     if (details.reason === 'install') {
+        console.log('[CSV QuickView] First install detected. Opening setup page.');
         chrome.tabs.create({ url: 'help.html' });
     }
 });
 
 chrome.runtime.onMessage.addListener((message) => {
     if (message.action === 'openExtensionsPage') {
+        console.log('[CSV QuickView] Received request to open extensions page.');
         chrome.tabs.create({ url: 'chrome://extensions' });
     }
 });
 
-// --- [2] CORE LOGIC: Intercept and Redirect ---
+// --- [2] CORE LOGIC: Intercept, Block, and Redirect ---
 chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
     // Only act on top-level navigation in a tab
     if (details.frameId !== 0) {
@@ -22,21 +26,21 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
 
     const fileUrl = details.url;
     if (fileUrl.startsWith('file://') && fileUrl.toLowerCase().endsWith('.csv')) {
-        console.log(`[CSV QuickView BG] Intercepted navigation to CSV: ${fileUrl}`);
+        console.log(`[CSV QuickView] Intercepted navigation to CSV: ${fileUrl}`);
 
-        // First, check if we even have permission to do anything.
-        const hasPermission = await chrome.extension.isAllowedFileSchemeAccess();
-        if (!hasPermission) {
-            console.warn("[CSV QuickView BG] File access not granted. Redirecting to help page.");
-            chrome.tabs.update(details.tabId, { url: 'help.html' });
-            return;
-        }
+        // This requires the "scripting" permission. It stops the browser's default
+        // action (like downloading the file) by injecting and running `window.stop()`
+        // in the tab before it can do anything else.
+        chrome.scripting.executeScript({
+            target: { tabId: details.tabId },
+            func: () => window.stop(),
+        });
         
-        // We have permission, so redirect to our viewer, passing the original URL as a parameter.
+        // Now that the tab is "frozen," we can safely redirect it.
         const viewerUrl = chrome.runtime.getURL('viewer.html');
         const targetUrl = `${viewerUrl}?fileUrl=${encodeURIComponent(fileUrl)}`;
         
-        console.log(`[CSV QuickView BG] Redirecting tab ${details.tabId} to: ${targetUrl}`);
+        console.log(`[CSV QuickView] Redirecting tab ${details.tabId} to internal viewer.`);
         
         chrome.tabs.update(details.tabId, { url: targetUrl });
     }

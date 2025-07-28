@@ -1,5 +1,74 @@
 /* css/main.css */
 
+/* --- Main Layout Wrapper --- */
+#main-content {
+    padding: 0 1.5rem;
+}
+
+/* --- Search Bar Styles --- */
+#search-bar {
+    padding: 0.75rem 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid #dbdbdb;
+    background-color: #f8f8f8;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+#search-bar.is-hidden {
+    display: none;
+}
+
+.search-title {
+    font-weight: 600;
+}
+
+#clear-search-btn {
+    font-size: 1.5em;
+    font-weight: bold;
+    line-height: 1;
+}
+
+#search-stats {
+    font-size: 0.8em;
+    color: #555;
+    white-space: nowrap;
+}
+
+/* --- Copy Tooltip Styles (UPDATED) --- */
+#copy-tooltip {
+    position: fixed;
+    background-color: #28a745;
+    color: white;
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+    z-index: 200;
+    pointer-events: none;
+    
+    /* Initial state for animation */
+    opacity: 0;
+    transform: scale(0.8) translateY(5px);
+    transition: all 0.2s ease-in-out; /* Animate all properties */
+}
+
+#copy-tooltip:not(.is-hidden) {
+    /* "Pop-in" state */
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+
+/* --- Highlight Style --- */
+mark {
+    background-color: #ffde7d;
+    border-radius: 3px;
+    padding: 0.1em;
+}
+
 /* --- Layout and Scroll --- */
 body {
     margin: 0;
@@ -7,15 +76,19 @@ body {
 
 #csv-render-container {
     overflow-x: auto;
-    width: 100vw;
+    width: 100%;
     position: relative;
+    /* FIX: Removed min-height to prevent double scrollbars. */
+    /* The spacer div inside will now correctly control the document's height. */
 }
 
 /* --- Table Styles --- */
 thead th {
     position: sticky;
-    top: 0;
-    z-index: 10;
+    /* This value should be the height of the search bar. Adjust if padding changes. */
+    top: 54px; 
+    background-color: #f5f5f5;
+    z-index: 20;
 }
 
 .table td, .table th {
@@ -25,8 +98,6 @@ thead th {
 }
 
 /* --- STICKY FIRST COLUMN LOGIC --- */
-
-/* Base stickiness */
 .table th:first-child,
 .table td:first-child {
     position: -webkit-sticky;
@@ -35,47 +106,50 @@ thead th {
     z-index: 2;
 }
 
-/* Ensure header is on top */
 .table thead th:first-child {
-    z-index: 11;
+    z-index: 21;
 }
 
 /* --- [1] DEFAULT (LIGHT MODE) STICKY COLORS --- */
-/* We explicitly define the light mode colors here */
-
-.table thead th:first-child {
-    background-color: #f5f5f5; /* Light mode header */
-}
-
 .table td:first-child {
-    background-color: #ffffff; /* Light mode default row */
+    background-color: #ffffff;
 }
-
 .table.is-striped tbody tr:nth-child(even) td:first-child {
-    background-color: #fafafa; /* Light mode striped row */
+    background-color: #fafafa;
 }
-
 .table.is-hoverable tbody tr:hover td:first-child {
-    background-color: #f5f5f5; /* Light mode hover */
+    background-color: #f5f5f5;
 }
-
 
 /* --- [2] DARK MODE OVERRIDES --- */
-/* When the system is in dark mode, these rules will apply */
 @media (prefers-color-scheme: dark) {
-    .table thead th:first-child {
-        background-color: #292929; /* Dark mode header */
+    #main-content {
+        background-color: #1e1e1e;
     }
-
+    #search-bar {
+        background-color: #262626;
+        border-bottom: 1px solid #444;
+    }
+    .search-title {
+        color: #eee;
+    }
+    #search-stats {
+        color: #ccc;
+    }
+    mark {
+        background-color: #f7d85d;
+        color: #111;
+    }
+    thead th {
+        background-color: #292929;
+    }
     .table td:first-child {
-        background-color: #1e1e1e; /* Dark mode default row */
+        background-color: #1e1e1e;
     }
-
     .table.is-striped tbody tr:nth-child(even) td:first-child {
-        background-color: #232323; /* Dark mode striped row */
+        background-color: #232323;
     }
-
     .table.is-hoverable tbody tr:hover td:first-child {
-        background-color: #262626; /* Dark mode hover */
+        background-color: #262626;
     }
 }
