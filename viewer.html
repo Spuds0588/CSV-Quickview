@@ -9,6 +9,14 @@
 </head>
 <body>
     <main id="main-content">
+        <!-- NEW: Options panel for header toggle -->
+        <div id="view-options">
+            <label class="checkbox">
+                <input type="checkbox" id="has-header-checkbox" checked>
+                File has a header row (first row is used for sorting)
+            </label>
+        </div>
+
         <div id="search-bar">
             <p class="search-title">Filter Rows</p>
             <div class="field has-addons">
@@ -30,6 +38,17 @@
     </main>
 
     <div id="copy-tooltip" class="is-hidden">Copied!</div>
+
+    <!-- NEW: Loading modal -->
+    <div class="modal" id="loading-modal">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <div class="box has-text-centered">
+                <p class="title is-4">Processing...</p>
+                <p>Sorting data. Please wait.</p>
+            </div>
+        </div>
+    </div>
     
     <script src="js/viewer.js"></script>
 </body>

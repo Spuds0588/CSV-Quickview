@@ -5,6 +5,14 @@
     padding: 0 1.5rem;
 }
 
+/* NEW: Styles for the options panel */
+#view-options {
+    padding: 0.75rem 0.25rem;
+    border-bottom: 1px solid #dbdbdb;
+    background-color: #fafafa;
+    font-size: 0.9em;
+}
+
 /* --- Search Bar (Static) --- */
 #search-bar {
     padding: 0.75rem 0;
@@ -34,22 +42,39 @@ mark { background-color: #ffde7d; border-radius: 3px; padding: 0.1em; }
 
 /* --- Layout and Scroll --- */
 body { margin: 0; }
-
-/* MODIFIED: The final fix to prevent any chance of a double scrollbar. */
 #csv-render-container {
     overflow-x: auto;
-    overflow-y: hidden; /* This prevents the vertical scrollbar on the container */
     width: 100%;
-    position: relative;
 }
 
 /* --- Table Styles --- */
+.table {
+    /* Ensures the table starts below the sticky search bar and options */
+    margin-top: calc(36px + 54px); 
+}
 
-/* Style for the header row (which is now just the first <tr>) */
+/* NEW: Style the header row to be interactive */
 .table .table-header-row td {
-    font-weight: 600;
+    font-weight: 700;
     background-color: #f5f5f5;
     color: #363636;
+    cursor: pointer;
+    -webkit-user-select: none; /* Prevent text selection on click */
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.table .table-header-row td:hover {
+    background-color: #e8e8e8;
+}
+
+/* NEW: Style for sort direction indicators */
+.sort-indicator {
+    display: inline-block;
+    margin-left: 0.5em;
+    color: #3273dc;
+    font-size: 0.8em;
+    vertical-align: middle;
 }
 
 .table td {
@@ -64,26 +89,24 @@ body { margin: 0; }
     position: sticky;
     left: 0;
     z-index: 2;
-    background-color: #ffffff; /* Base background for sticky column */
+    background-color: #ffffff;
 }
-
-/* Ensure header row's sticky first cell keeps its header background */
 .table tr.table-header-row td:first-child {
     background-color: #f5f5f5;
-    z-index: 3; /* Header cell should be on top of data cells */
+    z-index: 3;
 }
-
 .table.is-striped tbody tr:nth-child(even):not(.table-header-row) td:first-child {
     background-color: #fafafa;
 }
-.table.is-hoverable tbody tr:hover td,
-.table.is-hoverable tbody tr:hover td:first-child {
+.table.is-hoverable tbody tr:not(.table-header-row):hover td,
+.table.is-hoverable tbody tr:not(.table-header-row):hover td:first-child {
     background-color: #f0f0f0;
 }
 
 /* --- DARK MODE OVERRIDES --- */
 @media (prefers-color-scheme: dark) {
     body, #main-content { background-color: #1e1e1e; }
+    #view-options { background-color: #2a2a2a; border-bottom: 1px solid #444; color: #eee; }
     #search-bar { background-color: #262626; border-bottom: 1px solid #444; }
     .search-title, #search-stats { color: #eee; }
     mark { background-color: #f7d85d; color: #111; }
@@ -92,18 +115,12 @@ body { margin: 0; }
         background-color: #292929;
         color: #eee;
     }
-
-    .table tr td:first-child {
-        background-color: #1e1e1e;
+     .table .table-header-row td:hover {
+        background-color: #333;
     }
-    .table tr.table-header-row td:first-child {
-        background-color: #292929;
-    }
-    .table.is-striped tbody tr:nth-child(even):not(.table-header-row) td:first-child {
-        background-color: #232323;
-    }
-    .table.is-hoverable tbody tr:hover td,
-    .table.is-hoverable tbody tr:hover td:first-child {
-        background-color: #262626;
-    }
+    .table tr td:first-child { background-color: #1e1e1e; }
+    .table tr.table-header-row td:first-child { background-color: #292929; }
+    .table.is-striped tbody tr:nth-child(even):not(.table-header-row) td:first-child { background-color: #232323; }
+    .table.is-hoverable tbody tr:not(.table-header-row):hover td,
+    .table.is-hoverable tbody tr:not(.table-header-row):hover td:first-child { background-color: #262626; }
 }
