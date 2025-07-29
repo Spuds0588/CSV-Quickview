@@ -1,11 +1,12 @@
 // js/viewer.js
 
 // --- [1] Application State ---
-let originalData = [];
-let filteredIndices = [];
+let allRows = []; // A single array holding header + data
+let filteredRows = [];
 let currentSearchTerm = '';
+let requestRender = () => {}; // Placeholder for the render function
 
-// --- [2] Core Functions (Parsing and Rendering) ---
+// --- [2] Core Functions (Parsing, Rendering, Utilities) ---
 
 function parseCSV(text) {
     console.log('[CSV QuickView Viewer] Starting robust parse...');
@@ -48,162 +49,113 @@ function parseCSV(text) {
         rows.push(currentRow);
     }
     const nonEmptyRows = rows.filter(row => row.length > 1 || (row.length === 1 && row[0]));
-    if (nonEmptyRows.length === 0) return {
-        header: [],
-        data: []
-    };
-    console.log(`[CSV QuickView Viewer] Robust parse complete.`);
-    return {
-        header: nonEmptyRows[0],
-        data: nonEmptyRows.slice(1)
-    };
+    return nonEmptyRows; // Return all rows as a single array
 }
 
-function renderVirtualizedTable({
-    header,
-    data
-}) {
-    console.log(`[CSV QuickView Viewer] Initializing virtualized table for ${data.length} rows.`);
-    originalData = data;
+/**
+ * A single, unified virtualized renderer. It now handles both
+ * the initial load and the filtered view correctly.
+ */
+function setupVirtualizedTable() {
+    console.log('[CSV QuickView] Setting up unified virtualized table.');
     const container = document.getElementById('csv-render-container');
+    container.innerHTML = ''; // Clear everything
 
-    container.innerHTML = `
-        <table class="table is-bordered is-striped is-hoverable is-fullwidth">
-            <thead></thead>
-            <tbody></tbody>
-        </table>
-    `;
-
-    const table = container.querySelector('.table');
-    const thead = table.querySelector('thead');
-    const tbody = table.querySelector('tbody');
-
-    const headerRow = document.createElement('tr');
-    header.forEach(text => {
-        const th = document.createElement('th');
-        th.textContent = text;
-        headerRow.appendChild(th);
-    });
-    thead.appendChild(headerRow);
-
-    const headerHeight = thead.offsetHeight;
-    if (headerHeight === 0) {
-        console.warn("[CSV QuickView] Could not measure header height accurately.");
-    }
-
-    let rowHeight = 0;
-    const sampleRow = document.createElement('tr');
-    header.forEach(() => {
-        const sampleCell = document.createElement('td');
-        sampleCell.style.padding = '0.75em 1em';
-        sampleCell.innerHTML = 'Sample';
-        sampleRow.appendChild(sampleCell);
-    });
-    tbody.appendChild(sampleRow);
-    rowHeight = sampleRow.offsetHeight;
-    tbody.removeChild(sampleRow);
-    if (rowHeight <= 0) rowHeight = 30;
-
+    const table = document.createElement('table');
+    table.className = 'table is-bordered is-striped is-hoverable is-fullwidth';
+    const tbody = document.createElement('tbody');
+    table.appendChild(tbody);
+    
     const spacer = document.createElement('div');
-    container.insertBefore(spacer, table);
+    container.appendChild(spacer);
+    container.appendChild(table);
+
     table.style.position = 'absolute';
     table.style.top = '0';
-    table.style.left = '0';
     table.style.width = '100%';
-    table.style.marginTop = `0px`; // Will be adjusted later
 
-    let lastRenderedScrollY = -1;
+    let rowHeight = 0;
+
+    // We must render a sample row to measure its height
+    const sampleRow = document.createElement('tr');
+    sampleRow.className = 'table-header-row'; // Use header for max height
+    allRows[0].forEach(() => sampleRow.appendChild(document.createElement('td')).innerHTML = 'Sample');
+    tbody.appendChild(sampleRow);
+    rowHeight = sampleRow.offsetHeight || 30; // Use measured height or fallback
+    tbody.innerHTML = ''; // Clear the sample
+    
+    let lastScrollY = -1;
 
     function render() {
         const scrollY = window.scrollY;
-        if (Math.abs(scrollY - lastRenderedScrollY) < 1) return;
-        lastRenderedScrollY = scrollY;
+        if (Math.abs(scrollY - lastScrollY) < 1) {
+            requestAnimationFrame(render);
+            return;
+        }
+        lastScrollY = scrollY;
 
         const viewportHeight = window.innerHeight;
         const visibleRowCount = Math.ceil(viewportHeight / rowHeight);
         const buffer = 5;
         const startIndex = Math.max(0, Math.floor(scrollY / rowHeight) - buffer);
-        const endIndex = Math.min(filteredIndices.length, startIndex + visibleRowCount + (buffer * 2));
+        const endIndex = Math.min(filteredRows.length, startIndex + visibleRowCount + buffer * 2);
 
-        const visibleDataIndices = filteredIndices.slice(startIndex, endIndex);
-
-        let newTbodyHtml = '';
+        const visibleData = filteredRows.slice(startIndex, endIndex);
         const searchRegex = currentSearchTerm ? new RegExp(`(${escapeRegex(currentSearchTerm)})`, 'gi') : null;
 
-        for (const index of visibleDataIndices) {
-            const rowData = originalData[index];
-            newTbodyHtml += '<tr>';
-            for (let cellData of rowData) {
-                let sanitizedCellData = cellData.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                if (searchRegex && currentSearchTerm) {
-                    sanitizedCellData = sanitizedCellData.replace(searchRegex, `<mark>$1</mark>`);
+        let tbodyHtml = '';
+        visibleData.forEach((rowData, i) => {
+            // Determine if the current row is the header
+            const isHeader = (allRows[0] === rowData);
+            const rowClass = isHeader ? 'class="table-header-row"' : '';
+            tbodyHtml += `<tr ${rowClass}>`;
+            
+            rowData.forEach(cellData => {
+                let sanitized = cellData.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                if (searchRegex && currentSearchTerm && !isHeader) { // Don't highlight the header
+                    sanitized = sanitized.replace(searchRegex, `<mark>$1</mark>`);
                 }
-                newTbodyHtml += `<td>${sanitizedCellData}</td>`;
-            }
-            newTbodyHtml += '</tr>';
-        }
-        tbody.innerHTML = newTbodyHtml;
+                tbodyHtml += `<td>${sanitized}</td>`;
+            });
+            tbodyHtml += '</tr>';
+        });
+
+        tbody.innerHTML = tbodyHtml;
         tbody.style.transform = `translateY(${startIndex * rowHeight}px)`;
+        requestAnimationFrame(render);
     }
+    
+    requestRender = () => {
+        spacer.style.height = `${filteredRows.length * rowHeight}px`;
+        lastScrollY = -1; // Force a re-render
+        requestAnimationFrame(render);
+    };
 
-    function requestFullRender() {
-        const searchBar = document.getElementById('search-bar');
-        const searchBarHeight = searchBar.classList.contains('is-hidden') ? 0 : searchBar.offsetHeight;
-        
-        // Adjust sticky header position based on whether the search bar is visible
-        thead.style.top = `${searchBarHeight}px`;
-
-        spacer.style.height = `${(filteredIndices.length * rowHeight)}px`;
-        table.style.marginTop = `${headerHeight}px`;
-        lastRenderedScrollY = -1;
-        render();
-    }
-
-    window.addEventListener('scroll', render, {
-        passive: true
-    });
-    window.addEventListener('resize', () => {
-        lastRenderedScrollY = -1;
-        render();
-    }, {
-        passive: true
-    });
-
-    return requestFullRender;
+    window.addEventListener('scroll', render, { passive: true });
+    window.addEventListener('resize', requestRender, { passive: true });
 }
 
 function escapeRegex(string) {
     return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
 
-function updateFilter(searchTerm, triggerRender) {
-    console.log(`[CSV QuickView Viewer] Filtering for term: "${searchTerm}"`);
-    currentSearchTerm = searchTerm;
-    const searchLower = searchTerm.toLowerCase();
-
-    if (!searchTerm) {
-        filteredIndices = Array.from({
-            length: originalData.length
-        }, (_, i) => i);
-    } else {
-        filteredIndices = [];
-        for (let i = 0; i < originalData.length; i++) {
-            if (originalData[i].some(cell => cell.toLowerCase().includes(searchLower))) {
-                filteredIndices.push(i);
-            }
-        }
-    }
-
+function updateFilter(searchTerm) {
+    currentSearchTerm = searchTerm.trim().toLowerCase();
     const statsEl = document.getElementById('search-stats');
-    if (statsEl) {
-        if (searchTerm) {
-            statsEl.textContent = `${filteredIndices.length} / ${originalData.length} rows`;
-        } else {
-            statsEl.textContent = '';
-        }
-    }
 
-    triggerRender();
+    if (!currentSearchTerm) {
+        filteredRows = allRows;
+        statsEl.textContent = '';
+    } else {
+        // Always include the header, then filter the rest of the data
+        const dataRows = allRows.slice(1);
+        const results = dataRows.filter(row =>
+            row.some(cell => cell.toLowerCase().includes(currentSearchTerm))
+        );
+        filteredRows = [allRows[0], ...results]; // Prepend header to results
+        statsEl.textContent = `${results.length} / ${allRows.length - 1} rows`;
+    }
+    requestRender(); // Trigger a redraw with the new filtered data
 }
 
 function debounce(func, delay) {
@@ -221,80 +173,52 @@ async function initializeViewer() {
         document.body.innerHTML = '<div class="notification is-danger m-5"><h1>Error: No file URL specified.</h1></div>';
         return;
     }
-    const filename = decodeURIComponent(fileUrl.split('/').pop());
-    document.title = filename;
+    document.title = decodeURIComponent(fileUrl.split('/').pop());
 
     try {
         const response = await fetch(fileUrl);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const csvText = await response.text();
-        if (!csvText || csvText.trim() === '') {
-            document.body.innerHTML = `<div class="notification is-warning m-5">...</div>`;
-            return;
-        }
-        const { header, data } = parseCSV(csvText);
-        if (header.length > 0 && data.length === 0) {
-            document.body.innerHTML = `<div class="notification is-info m-5">...</div>`;
-            return;
-        }
-        if (header.length === 0) throw new Error("Could not parse file.");
+        
+        allRows = parseCSV(csvText);
+        if (allRows.length === 0) throw new Error("Could not parse file or file is empty.");
 
-        const triggerRender = renderVirtualizedTable({ header, data });
-        updateFilter('', triggerRender);
+        filteredRows = allRows; // Initially, all rows are visible
+        
+        setupVirtualizedTable();
+        requestRender(); // Trigger the first render
 
-        const searchBar = document.getElementById('search-bar');
         const searchInput = document.getElementById('search-input');
         const clearSearchBtn = document.getElementById('clear-search-btn');
-        const debouncedFilter = debounce(term => updateFilter(term, triggerRender), 150);
-        searchInput.addEventListener('input', () => {
-            debouncedFilter(searchInput.value);
-        });
+        const debouncedFilter = debounce(updateFilter, 200);
+
+        searchInput.addEventListener('input', () => debouncedFilter(searchInput.value));
         clearSearchBtn.addEventListener('click', () => {
             searchInput.value = '';
-            updateFilter('', triggerRender);
+            updateFilter('');
             searchInput.focus();
         });
-        window.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-                e.preventDefault();
-                searchBar.classList.remove('is-hidden');
-                triggerRender(); // Re-render to adjust header position
-                searchInput.focus();
-                searchInput.select();
-            }
-            if (e.key === 'Escape') {
-                searchInput.blur();
-                searchBar.classList.add('is-hidden');
-                triggerRender(); // Re-render to adjust header position
-            }
-        });
 
-        // --- Copy on Double-Click Logic ---
-        const tableBody = document.querySelector('.table tbody');
+        // Event delegation for double-click copy
+        const container = document.getElementById('csv-render-container');
         const tooltip = document.getElementById('copy-tooltip');
         let tooltipTimeout;
-        tableBody.addEventListener('dblclick', (e) => {
+        container.addEventListener('dblclick', (e) => {
             if (e.target && e.target.nodeName === 'TD') {
-                const cellText = e.target.innerText;
-                console.log(`[CSV QuickView] Copying to clipboard: "${cellText}"`);
-                navigator.clipboard.writeText(cellText).then(() => {
+                navigator.clipboard.writeText(e.target.innerText).then(() => {
                     const rect = e.target.getBoundingClientRect();
                     tooltip.style.left = `${rect.left + window.scrollX}px`;
                     tooltip.style.top = `${rect.top + window.scrollY - tooltip.offsetHeight - 5}px`;
                     tooltip.classList.remove('is-hidden');
                     clearTimeout(tooltipTimeout);
-                    tooltipTimeout = setTimeout(() => {
-                        tooltip.classList.add('is-hidden');
-                    }, 1200);
-                }).catch(err => {
-                    console.error('[CSV QuickView] Failed to copy text: ', err);
-                });
+                    tooltipTimeout = setTimeout(() => tooltip.classList.add('is-hidden'), 1200);
+                }).catch(err => console.error('Failed to copy text: ', err));
             }
         });
 
     } catch (error) {
-        console.error("[CSV QuickView Viewer] Critical error:", error);
-        document.body.innerHTML = `<div class="notification is-danger m-5"><h1>Error loading CSV: ${filename}</h1><p>${error.message}</p></div>`;
+        console.error("Critical error:", error);
+        document.body.innerHTML = `<div class="notification is-danger m-5"><h1>Error loading CSV</h1><p>${error.message}</p></div>`;
     }
 }
 

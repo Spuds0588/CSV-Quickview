@@ -5,7 +5,7 @@
     padding: 0 1.5rem;
 }
 
-/* --- Search Bar Styles --- */
+/* --- Search Bar (Static) --- */
 #search-bar {
     padding: 0.75rem 0;
     display: flex;
@@ -18,137 +18,91 @@
     z-index: 100;
 }
 
-#search-bar.is-hidden {
-    display: none;
-}
+.search-title { font-weight: 600; }
+#clear-search-btn { font-size: 1.5em; font-weight: bold; line-height: 1; }
+#search-stats { font-size: 0.8em; color: #555; white-space: nowrap; }
 
-.search-title {
-    font-weight: 600;
-}
-
-#clear-search-btn {
-    font-size: 1.5em;
-    font-weight: bold;
-    line-height: 1;
-}
-
-#search-stats {
-    font-size: 0.8em;
-    color: #555;
-    white-space: nowrap;
-}
-
-/* --- Copy Tooltip Styles (UPDATED) --- */
+/* --- Copy Tooltip & Highlight Styles --- */
 #copy-tooltip {
-    position: fixed;
-    background-color: #28a745;
-    color: white;
-    padding: 0.25rem 0.6rem;
-    border-radius: 4px;
-    font-size: 0.8em;
-    font-weight: bold;
-    z-index: 200;
-    pointer-events: none;
-    
-    /* Initial state for animation */
-    opacity: 0;
-    transform: scale(0.8) translateY(5px);
-    transition: all 0.2s ease-in-out; /* Animate all properties */
+    position: fixed; background-color: #28a745; color: white;
+    padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.8em;
+    font-weight: bold; z-index: 200; pointer-events: none; opacity: 0;
+    transform: scale(0.8) translateY(5px); transition: all 0.2s ease-in-out;
 }
-
-#copy-tooltip:not(.is-hidden) {
-    /* "Pop-in" state */
-    opacity: 1;
-    transform: scale(1) translateY(0);
-}
-
-/* --- Highlight Style --- */
-mark {
-    background-color: #ffde7d;
-    border-radius: 3px;
-    padding: 0.1em;
-}
+#copy-tooltip:not(.is-hidden) { opacity: 1; transform: scale(1) translateY(0); }
+mark { background-color: #ffde7d; border-radius: 3px; padding: 0.1em; }
 
 /* --- Layout and Scroll --- */
-body {
-    margin: 0;
-}
+body { margin: 0; }
 
+/* MODIFIED: The final fix to prevent any chance of a double scrollbar. */
 #csv-render-container {
     overflow-x: auto;
+    overflow-y: hidden; /* This prevents the vertical scrollbar on the container */
     width: 100%;
     position: relative;
-    /* FIX: Removed min-height to prevent double scrollbars. */
-    /* The spacer div inside will now correctly control the document's height. */
 }
 
 /* --- Table Styles --- */
-thead th {
-    position: sticky;
-    /* This value should be the height of the search bar. Adjust if padding changes. */
-    top: 54px; 
+
+/* Style for the header row (which is now just the first <tr>) */
+.table .table-header-row td {
+    font-weight: 600;
     background-color: #f5f5f5;
-    z-index: 20;
+    color: #363636;
 }
 
-.table td, .table th {
+.table td {
     padding: 0.75em 1em;
     vertical-align: top;
     white-space: nowrap;
 }
 
 /* --- STICKY FIRST COLUMN LOGIC --- */
-.table th:first-child,
-.table td:first-child {
+.table tr td:first-child {
     position: -webkit-sticky;
     position: sticky;
     left: 0;
     z-index: 2;
+    background-color: #ffffff; /* Base background for sticky column */
 }
 
-.table thead th:first-child {
-    z-index: 21;
+/* Ensure header row's sticky first cell keeps its header background */
+.table tr.table-header-row td:first-child {
+    background-color: #f5f5f5;
+    z-index: 3; /* Header cell should be on top of data cells */
 }
 
-/* --- [1] DEFAULT (LIGHT MODE) STICKY COLORS --- */
-.table td:first-child {
-    background-color: #ffffff;
-}
-.table.is-striped tbody tr:nth-child(even) td:first-child {
+.table.is-striped tbody tr:nth-child(even):not(.table-header-row) td:first-child {
     background-color: #fafafa;
 }
+.table.is-hoverable tbody tr:hover td,
 .table.is-hoverable tbody tr:hover td:first-child {
-    background-color: #f5f5f5;
+    background-color: #f0f0f0;
 }
 
-/* --- [2] DARK MODE OVERRIDES --- */
+/* --- DARK MODE OVERRIDES --- */
 @media (prefers-color-scheme: dark) {
-    #main-content {
-        background-color: #1e1e1e;
-    }
-    #search-bar {
-        background-color: #262626;
-        border-bottom: 1px solid #444;
-    }
-    .search-title {
+    body, #main-content { background-color: #1e1e1e; }
+    #search-bar { background-color: #262626; border-bottom: 1px solid #444; }
+    .search-title, #search-stats { color: #eee; }
+    mark { background-color: #f7d85d; color: #111; }
+
+    .table .table-header-row td {
+        background-color: #292929;
         color: #eee;
     }
-    #search-stats {
-        color: #ccc;
-    }
-    mark {
-        background-color: #f7d85d;
-        color: #111;
-    }
-    thead th {
-        background-color: #292929;
-    }
-    .table td:first-child {
+
+    .table tr td:first-child {
         background-color: #1e1e1e;
     }
-    .table.is-striped tbody tr:nth-child(even) td:first-child {
+    .table tr.table-header-row td:first-child {
+        background-color: #292929;
+    }
+    .table.is-striped tbody tr:nth-child(even):not(.table-header-row) td:first-child {
         background-color: #232323;
     }
+    .table.is-hoverable tbody tr:hover td,
     .table.is-hoverable tbody tr:hover td:first-child {
         background-color: #262626;
     }
