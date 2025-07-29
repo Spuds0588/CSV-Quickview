@@ -9,28 +9,30 @@
 </head>
 <body>
     <main id="main-content">
-        <!-- NEW: Options panel for header toggle -->
-        <div id="view-options">
-            <label class="checkbox">
-                <input type="checkbox" id="has-header-checkbox" checked>
-                File has a header row (first row is used for sorting)
-            </label>
-        </div>
-
-        <div id="search-bar">
-            <p class="search-title">Filter Rows</p>
-            <div class="field has-addons">
-                <div class="control">
-                    <input class="input" id="search-input" type="text" placeholder="Enter text to filter...">
-                </div>
-                <div class="control">
-                    <button class="button" id="clear-search-btn" title="Clear Search">
-                        &times;
-                    </button>
-                </div>
+        <!-- NEW: Wrapper for all top controls to make them sticky together -->
+        <header id="top-controls">
+            <div id="view-options">
+                <label class="checkbox">
+                    <input type="checkbox" id="has-header-checkbox" checked>
+                    File has a header row (first row is used for sorting)
+                </label>
             </div>
-            <div id="search-stats"></div>
-        </div>
+    
+            <div id="search-bar">
+                <p class="search-title">Filter Rows</p>
+                <div class="field has-addons">
+                    <div class="control">
+                        <input class="input" id="search-input" type="text" placeholder="Enter text to filter...">
+                    </div>
+                    <div class="control">
+                        <button class="button" id="clear-search-btn" title="Clear Search">
+                            &times;
+                        </button>
+                    </div>
+                </div>
+                <div id="search-stats"></div>
+            </div>
+        </header>
 
         <div id="csv-render-container">
             <!-- Table will be generated here by viewer.js -->
@@ -39,7 +41,6 @@
 
     <div id="copy-tooltip" class="is-hidden">Copied!</div>
 
-    <!-- NEW: Loading modal -->
     <div class="modal" id="loading-modal">
         <div class="modal-background"></div>
         <div class="modal-content">

@@ -2,28 +2,38 @@
 
 /* --- Main Layout Wrapper --- */
 #main-content {
-    padding: 0 1.5rem;
+    /* This padding correctly constrains the table content */
+    padding: 0 1.5rem 2rem 1.5rem;
 }
 
-/* NEW: Styles for the options panel */
-#view-options {
-    padding: 0.75rem 0.25rem;
-    border-bottom: 1px solid #dbdbdb;
-    background-color: #fafafa;
-    font-size: 0.9em;
-}
-
-/* --- Search Bar (Static) --- */
-#search-bar {
-    padding: 0.75rem 0;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    border-bottom: 1px solid #dbdbdb;
-    background-color: #f8f8f8;
+/* --- A single sticky container for all controls --- */
+#top-controls {
+    position: -webkit-sticky;
     position: sticky;
     top: 0;
     z-index: 100;
+    background-color: #fafafa;
+    
+    /* FIX: Use negative margins to break out of the parent's padding */
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+}
+
+/* --- Options & Search Panels --- */
+#view-options {
+    /* FIX: Add horizontal padding to align content with the table */
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid #dbdbdb;
+    font-size: 0.9em;
+}
+
+#search-bar {
+    /* FIX: Add horizontal padding to align content with the table */
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background-color: #f8f8f8;
 }
 
 .search-title { font-weight: 600; }
@@ -48,27 +58,22 @@ body { margin: 0; }
 }
 
 /* --- Table Styles --- */
+/* FIX: The table no longer needs a margin-top, as the sticky header handles spacing */
 .table {
-    /* Ensures the table starts below the sticky search bar and options */
-    margin-top: calc(36px + 54px); 
+    margin-top: 0;
 }
 
-/* NEW: Style the header row to be interactive */
 .table .table-header-row td {
     font-weight: 700;
     background-color: #f5f5f5;
     color: #363636;
     cursor: pointer;
-    -webkit-user-select: none; /* Prevent text selection on click */
-    -moz-user-select: none;
-    -ms-user-select: none;
     user-select: none;
 }
 .table .table-header-row td:hover {
     background-color: #e8e8e8;
 }
 
-/* NEW: Style for sort direction indicators */
 .sort-indicator {
     display: inline-block;
     margin-left: 0.5em;
@@ -105,22 +110,27 @@ body { margin: 0; }
 
 /* --- DARK MODE OVERRIDES --- */
 @media (prefers-color-scheme: dark) {
-    body, #main-content { background-color: #1e1e1e; }
-    #view-options { background-color: #2a2a2a; border-bottom: 1px solid #444; color: #eee; }
-    #search-bar { background-color: #262626; border-bottom: 1px solid #444; }
+    body, #main-content { background-color: #1a1a1a; }
+
+    #top-controls { background-color: #262626; }
+    #view-options, #search-bar {
+        background-color: #262626;
+        border-bottom: 1px solid #444;
+    }
+    #view-options { color: #eee; }
     .search-title, #search-stats { color: #eee; }
     mark { background-color: #f7d85d; color: #111; }
 
     .table .table-header-row td {
-        background-color: #292929;
+        background-color: #333;
         color: #eee;
     }
      .table .table-header-row td:hover {
-        background-color: #333;
+        background-color: #3c3c3c;
     }
-    .table tr td:first-child { background-color: #1e1e1e; }
-    .table tr.table-header-row td:first-child { background-color: #292929; }
-    .table.is-striped tbody tr:nth-child(even):not(.table-header-row) td:first-child { background-color: #232323; }
+    .table tr td:first-child { background-color: #1a1a1a; }
+    .table tr.table-header-row td:first-child { background-color: #333; }
+    .table.is-striped tbody tr:nth-child(even):not(.table-header-row) td:first-child { background-color: #222; }
     .table.is-hoverable tbody tr:not(.table-header-row):hover td,
-    .table.is-hoverable tbody tr:not(.table-header-row):hover td:first-child { background-color: #262626; }
+    .table.is-hoverable tbody tr:not(.table-header-row):hover td:first-child { background-color: #2c2c2c; }
 }
